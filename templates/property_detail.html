@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ prop.title }}{% endblock %}
+
+{% block content %}
+{% set images = [prop.image_url] + (prop.gallery or []) %}
+
+<section class="section">
+  <div class="container">
+
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="{{ url_for('index') }}">Home</a> /
+      <a href="{{ url_for('properties') }}">Properties</a> /
+      <span>{{ prop.title }}</span>
+    </nav>
+
+    {% if prop.status != 'approved' %}
+      <div class="flash flash-warning" style="margin-bottom:1rem;">
+        <span>This listing is <strong>{{ prop.status }}</strong>, so only you and administrators can see it.</span>
+      </div>
+    {% endif %}
+
+    <div class="detail-layout">
+
+      {# ---------------- left column ---------------- #}
+      <div class="detail-main">
+
+        <div class="gallery">
+          <div class="gallery-main">
+            <img id="gallery-main" src="{{ images[0] }}" alt="{{ prop.title }}" class="js-img-fallback">
+          </div>
+          {% if images|length > 1 %}
+            <div class="gallery-thumbs">
+              {% for img in images %}
+                <button type="button" class="gallery-thumb{% if loop.first %} active{% endif %}"
+                        data-src="{{ img }}" aria-label="Show image {{ loop.index }}">
+                  <img src="{{ img }}" alt="" class="js-img-fallback" loading="lazy">
+                </button>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="detail-title-row">
+          <div>
+            <h1>{{ prop.title }}</h1>
+            <p class="card-location">📍 {{ prop.location }}</p>
+          </div>
+          <div class="detail-badges">
+            <span class="badge badge-type">{{ prop.property_type }}</span>
+            <span class="badge {{ 'badge-success' if prop.availability == 'Available' else 'badge-rented' }}">{{ prop.availability }}</span>
+          </div>
+        </div>
+
+        <div class="spec-grid">
+          <div class="spec"><span>Monthly Rent</span><strong>{{ prop.rent|rupees }}</strong></div>
+          <div class="spec"><span>Bedrooms</span><strong>{{ prop.bedrooms }}</strong></div>
+          <div class="spec"><span>Bathrooms</span><strong>{{ prop.bathrooms }}</strong></div>
+          <div class="spec"><span>Area</span><strong>{{ prop.area_sqft }} sq ft</strong></div>
+          <div class="spec"><span>Furnishing</span><strong>{{ prop.furnishing }}</strong></div>
+          <div class="spec"><span>Listed On</span><strong>{{ prop.created_at|date }}</strong></div>
+        </div>
+
+        <h2 class="detail-heading">About this property</h2>
+        <p class="detail-description">{{ prop.description }}</p>
+
+        <h2 class="detail-heading">Amenities</h2>
+        {% if prop.amenities %}
+          <ul class="amenity-list">
+            {% for a in prop.amenities %}<li>✔ {{ a }}</li>{% endfor %}
+          </ul>
+        {% else %}
+          <p class="muted">No amenities listed.</p>
+        {% endif %}
+      </div>
+
+      {# ---------------- right column ---------------- #}
+      <aside class="detail-side">
+        <div class="side-card">
+          <p class="side-rent">{{ prop.rent|rupees }}<span> / month</span></p>
+
+          {% if current_user and current_user.role == 'tenant' and prop.status == 'approved' %}
+            <form method="post" action="{{ url_for('wishlist_toggle', property_id=prop.id) }}" class="wishlist-form">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-outline btn-block wishlist-btn{% if in_wishlist %} is-saved{% endif %}"
+                      aria-pressed="{{ 'true' if in_wishlist else 'false' }}">
+                <span class="wishlist-label">{{ '♥ Saved' if in_wishlist else '♡ Add to Wishlist' }}</span>
+              </button>
+            </form>
+          {% elif not current_user %}
+            <a class="btn btn-outline btn-block" href="{{ url_for('login', next=request.path) }}">♡ Add to Wishlist</a>
+          {% endif %}
+        </div>
+
+        <div class="side-card">
+          <h3>Owner Information</h3>
+          {% if owner %}
+            <p class="owner-name">👤 {{ owner.name }}</p>
+            {% if current_user %}
+              <p class="owner-line">✉ {{ owner.email }}</p>
+              <p class="owner-line">☎ {{ owner.phone }}</p>
+            {% else %}
+              <p class="muted">Log in to see the owner's contact details.</p>
+            {% endif %}
+          {% else %}
+            <p class="muted">Owner details are unavailable.</p>
+          {% endif %}
+        </div>
+
+        <div class="side-card" id="enquiry">
+          <h3>Rental Enquiry</h3>
+
+          {% if can_enquire %}
+            <form method="post" action="{{ url_for('send_enquiry', property_id=prop.id) }}" class="js-validate" novalidate>
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="field">
+                <label for="message">Your message</label>
+                <textarea id="message" name="message" rows="5" minlength="10" maxlength="1000" required
+                          placeholder="Hi, I'm interested in this property. When can I visit?"></textarea>
+                <small class="field-error"></small>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block">Send Enquiry</button>
+            </form>
+          {% elif not current_user %}
+            <p class="muted">Please log in as a tenant to contact the owner.</p>
+            <a class="btn btn-primary btn-block" href="{{ url_for('login', next=request.path) }}">Login</a>
+            <p class="side-note">New here? <a href="{{ url_for('register') }}">Create an account</a></p>
+          {% elif current_user.role == 'tenant' %}
+            <p class="muted">This property is not accepting enquiries right now (it may be rented or awaiting approval).</p>
+          {% else %}
+            <p class="muted">Only tenant accounts can send rental enquiries.</p>
+          {% endif %}
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+{% endblock %}

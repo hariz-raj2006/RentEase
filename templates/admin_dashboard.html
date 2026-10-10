@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="container header-row">
+    <div>
+      <h1>Administrator Dashboard</h1>
+      <p>Overview of the platform and listing moderation.</p>
+    </div>
+    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-light">View All Users</a>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <div class="stat-cards">
+      <div class="stat-card"><strong>{{ stats.users }}</strong><span>Total Users</span></div>
+      <div class="stat-card"><strong>{{ stats.tenants }}</strong><span>Tenants</span></div>
+      <div class="stat-card"><strong>{{ stats.owners }}</strong><span>Property Owners</span></div>
+      <div class="stat-card"><strong>{{ stats.properties }}</strong><span>Total Properties</span></div>
+      <div class="stat-card"><strong>{{ stats.pending }}</strong><span>Awaiting Approval</span></div>
+      <div class="stat-card"><strong>{{ stats.enquiries }}</strong><span>Total Enquiries</span></div>
+    </div>
+
+    <div class="section-head section-head-left">
+      <h2>Property Listings</h2>
+      <div class="filter-tabs">
+        <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if not status_filter }}">All</a>
+        <a href="{{ url_for('admin_dashboard', status='pending') }}" class="{{ 'active' if status_filter == 'pending' }}">Pending</a>
+        <a href="{{ url_for('admin_dashboard', status='approved') }}" class="{{ 'active' if status_filter == 'approved' }}">Approved</a>
+        <a href="{{ url_for('admin_dashboard', status='rejected') }}" class="{{ 'active' if status_filter == 'rejected' }}">Rejected</a>
+      </div>
+    </div>
+
+    {% if properties %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Owner</th>
+              <th>Rent</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in properties %}
+              <tr>
+                <td data-label="Property">
+                  <div class="table-property">
+                    <img src="{{ p.image_url }}" alt="" class="thumb js-img-fallback" loading="lazy">
+                    <div>
+                      <a href="{{ url_for('property_detail', property_id=p.id) }}">{{ p.title }}</a>
+                      <small class="block muted">{{ p.location }} · {{ p.property_type }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Owner">
+                  {% if p.owner %}{{ p.owner.name }}<small class="block muted">{{ p.owner.email }}</small>{% else %}<span class="muted">Unknown</span>{% endif %}
+                </td>
+                <td data-label="Rent">{{ p.rent|rupees }}</td>
+                <td data-label="Status"><span class="badge badge-{{ p.status }}">{{ p.status|capitalize }}</span></td>
+                <td data-label="Actions">
+                  <div class="action-row">
+                    {% if p.status != 'approved' %}
+                      <form method="post" action="{{ url_for('admin_property_status', property_id=p.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="approve">
+                        <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                      </form>
+                    {% endif %}
+                    {% if p.status != 'rejected' %}
+                      <form method="post" action="{{ url_for('admin_property_status', property_id=p.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="reject">
+                        <button type="submit" class="btn btn-outline btn-sm">Reject</button>
+                      </form>
+                    {% endif %}
+                    <form method="post" action="{{ url_for('admin_property_status', property_id=p.id) }}"
+                          class="js-confirm-form"
+                          data-confirm="Permanently remove '{{ p.title }}'? This also deletes its wishlist entries and enquiries.">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <input type="hidden" name="action" value="remove">
+                      <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>No properties in this view</h3>
+        <p>Try a different status filter.</p>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary">Show all</a>
+      </div>
+    {% endif %}
+
+    <div class="section-head section-head-left">
+      <h2>Newest Users</h2>
+      <a href="{{ url_for('admin_users') }}">See all users</a>
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+        <tbody>
+          {% for u in recent_users %}
+            <tr>
+              <td data-label="Name">{{ u.name }}</td>
+              <td data-label="Email">{{ u.email }}</td>
+              <td data-label="Role"><span class="badge badge-role-{{ u.role }}">{{ u.role|capitalize }}</span></td>
+              <td data-label="Joined">{{ u.created_at|date }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

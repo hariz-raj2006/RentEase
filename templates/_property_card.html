@@ -1,0 +1,44 @@
+{# Reusable property card. Imported with:
+   {% from "_property_card.html" import property_card with context %}
+   "with context" lets this file use current_user, csrf_token() and request. #}
+{% macro property_card(p, wishlist_ids, remove_on_toggle=false) %}
+{% set saved = p.id in wishlist_ids %}
+<article class="property-card">
+  <a class="card-image" href="{{ url_for('property_detail', property_id=p.id) }}">
+    <img src="{{ p.image_url }}" alt="{{ p.title }}" loading="lazy" class="js-img-fallback">
+    <span class="badge badge-type">{{ p.property_type }}</span>
+    {% if p.availability == 'Rented' %}<span class="badge badge-rented">Rented</span>{% endif %}
+  </a>
+
+  <div class="card-body">
+    <h3 class="card-title">
+      <a href="{{ url_for('property_detail', property_id=p.id) }}">{{ p.title }}</a>
+    </h3>
+    <p class="card-location">📍 {{ p.location }}</p>
+    <p class="card-rent">{{ p.rent|rupees }}<span> / month</span></p>
+    <ul class="card-meta">
+      <li>🛏 {{ p.bedrooms }} Bed</li>
+      <li>🛁 {{ p.bathrooms }} Bath</li>
+      <li>📐 {{ p.area_sqft }} sq ft</li>
+    </ul>
+    <p class="card-desc">{{ p.description|truncate(100) }}</p>
+  </div>
+
+  <div class="card-actions">
+    <a class="btn btn-primary btn-sm" href="{{ url_for('property_detail', property_id=p.id) }}">View Details</a>
+
+    {% if not current_user %}
+      <a class="btn btn-outline btn-sm" href="{{ url_for('login', next=request.path) }}">♡ Add to Wishlist</a>
+    {% elif current_user.role == 'tenant' %}
+      <form method="post" action="{{ url_for('wishlist_toggle', property_id=p.id) }}"
+            class="wishlist-form"{% if remove_on_toggle %} data-remove-card="true"{% endif %}>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline btn-sm wishlist-btn{% if saved %} is-saved{% endif %}"
+                aria-pressed="{{ 'true' if saved else 'false' }}">
+          <span class="wishlist-label">{{ '♥ Saved' if saved else '♡ Add to Wishlist' }}</span>
+        </button>
+      </form>
+    {% endif %}
+  </div>
+</article>
+{% endmacro %}

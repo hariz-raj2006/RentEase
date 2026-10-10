@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Add New Property' if mode == 'add' else 'Edit Property' }}{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="container">
+    <h1>{{ 'Add New Property' if mode == 'add' else 'Edit Property' }}</h1>
+    <p>{% if mode == 'add' %}New listings are reviewed by an administrator before going live.{% else %}Update the details of your listing.{% endif %}</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="form-card">
+      <form method="post" novalidate class="js-validate"
+            action="{{ url_for('property_add') if mode == 'add' else url_for('property_edit', property_id=prop.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="field">
+          <label for="title">Property title</label>
+          <input type="text" id="title" name="title" value="{{ form.get('title', '') }}"
+                 required minlength="5" maxlength="100" placeholder="e.g. Sunrise Heights 2BHK Apartment">
+          <small class="field-error"></small>
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="5" required minlength="20" maxlength="2000"
+                    placeholder="Describe the property, the neighbourhood and what is included...">{{ form.get('description', '') }}</textarea>
+          <small class="field-error"></small>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" value="{{ form.get('location', '') }}"
+                   required minlength="3" maxlength="100" placeholder="Area, City">
+            <small class="field-error"></small>
+          </div>
+          <div class="field">
+            <label for="rent">Monthly rent (₹)</label>
+            <input type="number" id="rent" name="rent" value="{{ form.get('rent', '') }}"
+                   required min="500" max="1000000" step="1" placeholder="e.g. 25000">
+            <small class="field-error"></small>
+          </div>
+        </div>
+
+        <div class="form-row form-row-3">
+          <div class="field">
+            <label for="property_type">Property type</label>
+            <select id="property_type" name="property_type" required>
+              {% for t in PROPERTY_TYPES %}
+                <option value="{{ t }}" {% if form.get('property_type') == t %}selected{% endif %}>{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="furnishing">Furnishing</label>
+            <select id="furnishing" name="furnishing" required>
+              {% for f in FURNISHING_OPTIONS %}
+                <option value="{{ f }}" {% if form.get('furnishing') == f %}selected{% endif %}>{{ f }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="availability">Availability</label>
+            <select id="availability" name="availability" required>
+              {% for a in AVAILABILITY_OPTIONS %}
+                <option value="{{ a }}" {% if form.get('availability') == a %}selected{% endif %}>{{ a }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row form-row-3">
+          <div class="field">
+            <label for="bedrooms">Bedrooms</label>
+            <input type="number" id="bedrooms" name="bedrooms" value="{{ form.get('bedrooms', '') }}"
+                   required min="0" max="20" step="1">
+            <small class="field-error"></small>
+          </div>
+          <div class="field">
+            <label for="bathrooms">Bathrooms</label>
+            <input type="number" id="bathrooms" name="bathrooms" value="{{ form.get('bathrooms', '') }}"
+                   required min="0" max="20" step="1">
+            <small class="field-error"></small>
+          </div>
+          <div class="field">
+            <label for="area_sqft">Area (sq ft)</label>
+            <input type="number" id="area_sqft" name="area_sqft" value="{{ form.get('area_sqft', '') }}"
+                   required min="50" max="100000" step="1" placeholder="e.g. 1100">
+            <small class="field-error"></small>
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend>Amenities</legend>
+          <div class="checkbox-grid">
+            {% set chosen = form.get('amenities') or [] %}
+            {% for a in AMENITY_OPTIONS %}
+              <label class="checkbox-pill">
+                <input type="checkbox" name="amenities" value="{{ a }}" {% if a in chosen %}checked{% endif %}>
+                <span>{{ a }}</span>
+              </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label for="image_select">Choose a sample image</label>
+          <select id="image_select" data-image-target="#image_url" data-image-preview="#image-preview">
+            <option value="">-- Pick a sample image (optional) --</option>
+            {% for label, url in SAMPLE_IMAGES %}
+              <option value="{{ url }}" {% if form.get('image_url') == url %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="image_url">Image URL</label>
+          <input type="text" id="image_url" name="image_url" value="{{ form.get('image_url', '') }}"
+                 maxlength="500" placeholder="https://... or /static/images/your-photo.jpg">
+          <small class="field-hint">Leave empty to use the first sample image. Local files go in <code>static/images/</code> and are written as <code>/static/images/name.jpg</code>.</small>
+          <small class="field-error"></small>
+        </div>
+
+        <div class="image-preview-box">
+          <img id="image-preview" src="{{ form.get('image_url') or SAMPLE_IMAGES[0][1] }}" alt="Image preview" class="js-img-fallback">
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary btn-lg">{{ 'Submit Property' if mode == 'add' else 'Save Changes' }}</button>
+          <a href="{{ url_for('owner_dashboard') }}" class="btn btn-outline btn-lg">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

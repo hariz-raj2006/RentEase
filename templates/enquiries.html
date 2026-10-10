@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}My Enquiries{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="container">
+    <h1>My Enquiries</h1>
+    <p>Messages you have sent to property owners, and their current status.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if enquiries %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Your message</th>
+              <th>Sent on</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in enquiries %}
+              <tr>
+                <td data-label="Property">
+                  {% if e.property %}
+                    <a href="{{ url_for('property_detail', property_id=e.property.id) }}">{{ e.property.title }}</a>
+                    <small class="block muted">{{ e.property.location }}</small>
+                  {% else %}
+                    <span class="muted">Property no longer available</span>
+                  {% endif %}
+                </td>
+                <td data-label="Message" class="cell-message">{{ e.message }}</td>
+                <td data-label="Sent on">{{ e.created_at|date }}</td>
+                <td data-label="Status"><span class="badge badge-{{ e.status|lower }}">{{ e.status }}</span></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="side-note">Status meaning: <strong>Pending</strong> = not yet seen, <strong>Contacted</strong> = the owner has reached out, <strong>Closed</strong> = finished.</p>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">💬</div>
+        <h3>No enquiries yet</h3>
+        <p>Open any property and use the Rental Enquiry form to contact the owner.</p>
+        <a href="{{ url_for('properties') }}" class="btn btn-primary">Browse Properties</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+  <div class="auth-card">
+    <h1>Welcome back</h1>
+    <p class="auth-sub">Log in to manage your wishlist, enquiries or listings.</p>
+
+    {# The "next" value must stay in the URL so the login view can read it #}
+    <form method="post" novalidate class="js-validate"
+          action="{{ url_for('login', next=next_url) if next_url else url_for('login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" value="{{ email }}" required autocomplete="email"
+               placeholder="you@example.com">
+        <small class="field-error"></small>
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password"
+               placeholder="Your password">
+        <small class="field-error"></small>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Login</button>
+    </form>
+
+    <p class="auth-switch">Don't have an account? <a href="{{ url_for('register') }}">Register</a></p>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Property Enquiries{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="container header-row">
+    <div>
+      <h1>Rental Enquiries</h1>
+      <p>{% if filtered %}Showing enquiries for one property.{% else %}Enquiries from tenants about all of your properties.{% endif %}</p>
+    </div>
+    {% if filtered %}
+      <a href="{{ url_for('owner_enquiries') }}" class="btn btn-outline-light">Show all enquiries</a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if enquiries %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Tenant</th>
+              <th>Message</th>
+              <th>Received</th>
+              <th>Status</th>
+              <th>Update status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in enquiries %}
+              <tr>
+                <td data-label="Property">
+                  {% if e.property %}
+                    <a href="{{ url_for('property_detail', property_id=e.property.id) }}">{{ e.property.title }}</a>
+                  {% else %}
+                    <span class="muted">Removed</span>
+                  {% endif %}
+                </td>
+                <td data-label="Tenant">
+                  {% if e.tenant %}
+                    <strong>{{ e.tenant.name }}</strong>
+                    <small class="block">✉ {{ e.tenant.email }}</small>
+                    <small class="block">☎ {{ e.tenant.phone }}</small>
+                  {% else %}
+                    <span class="muted">Unknown user</span>
+                  {% endif %}
+                </td>
+                <td data-label="Message" class="cell-message">{{ e.message }}</td>
+                <td data-label="Received">{{ e.created_at|date }}</td>
+                <td data-label="Status"><span class="badge badge-{{ e.status|lower }}">{{ e.status }}</span></td>
+                <td data-label="Update status">
+                  <form method="post" action="{{ url_for('owner_enquiry_status', enquiry_id=e.id) }}" class="inline-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <select name="status" aria-label="Enquiry status">
+                      {% for s in ENQUIRY_STATUSES %}
+                        <option value="{{ s }}" {% if e.status == s %}selected{% endif %}>{{ s }}</option>
+                      {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary btn-sm">Update</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">📭</div>
+        <h3>No enquiries yet</h3>
+        <p>When tenants contact you about a property, their messages will appear here.</p>
+        <a href="{{ url_for('owner_dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

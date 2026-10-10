@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% from "_property_card.html" import property_card with context %}
+
+{% block title %}Find Your Next Home{% endblock %}
+
+{% block content %}
+
+<section class="hero">
+  <div class="container hero-inner">
+    <p class="hero-eyebrow">House and Property Rental Platform</p>
+    <h1>Find a Place You'll Love to Call Home</h1>
+    <p class="hero-sub">Browse apartments, independent houses, villas and rooms, save your
+      favourites and message owners directly. No brokers, no hassle.</p>
+
+    <form class="search-form js-filter-form" action="{{ url_for('properties') }}" method="get">
+      <div class="field">
+        <label for="hero-location">Location</label>
+        <input type="text" id="hero-location" name="location" placeholder="City or area" maxlength="60">
+      </div>
+      <div class="field">
+        <label for="hero-type">Property type</label>
+        <select id="hero-type" name="property_type">
+          <option value="">All types</option>
+          {% for t in PROPERTY_TYPES %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="hero-max">Max rent (₹ / month)</label>
+        <input type="number" id="hero-max" name="max_rent" min="0" step="500" placeholder="e.g. 30000">
+      </div>
+      <button type="submit" class="btn btn-accent btn-lg">Search</button>
+    </form>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <h2>Browse by Category</h2>
+      <p>Pick the kind of home that fits your lifestyle.</p>
+    </div>
+    <div class="category-grid">
+      {% set icons = {'Apartment': '🏢', 'Independent House': '🏡', 'Villa': '🏰', 'Room': '🛏️'} %}
+      {% for t in PROPERTY_TYPES %}
+        <a class="category-card" href="{{ url_for('properties', property_type=t) }}">
+          <span class="category-icon" aria-hidden="true">{{ icons[t] }}</span>
+          <h3>{{ t }}</h3>
+          <p>{{ type_counts[t] }} listing{{ '' if type_counts[t] == 1 else 's' }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <h2>Featured Rentals</h2>
+      <p>Our newest approved listings.</p>
+    </div>
+
+    {% if featured %}
+      <div class="property-grid">
+        {% for p in featured %}{{ property_card(p, wishlist_ids) }}{% endfor %}
+      </div>
+      <div class="center-row">
+        <a href="{{ url_for('properties') }}" class="btn btn-primary">View All Properties</a>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <h3>No properties listed yet</h3>
+        <p>Run <code>py seed_data.py</code> to add sample properties.</p>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="section" id="about">
+  <div class="container">
+    <div class="section-head">
+      <h2>Why Choose RentEase?</h2>
+      <p>RentEase connects tenants and owners in one simple place.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">🔎</span>
+        <h3>Smart Search</h3>
+        <p>Filter by location, type, rent and bedrooms to find the right place quickly.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">✅</span>
+        <h3>Reviewed Listings</h3>
+        <p>Every property is checked by an administrator before it goes live.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">❤️</span>
+        <h3>Save Favourites</h3>
+        <p>Build a wishlist that stays with your account, on any device.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon" aria-hidden="true">💬</span>
+        <h3>Direct Enquiries</h3>
+        <p>Message owners from the property page and track every reply status.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="container stats-grid">
+    <div class="stat"><strong data-count="{{ stats.properties }}">{{ stats.properties }}</strong><span>Active Properties</span></div>
+    <div class="stat"><strong data-count="{{ stats.tenants }}">{{ stats.tenants }}</strong><span>Registered Tenants</span></div>
+    <div class="stat"><strong data-count="{{ stats.owners }}">{{ stats.owners }}</strong><span>Property Owners</span></div>
+    <div class="stat"><strong data-count="{{ stats.enquiries }}">{{ stats.enquiries }}</strong><span>Enquiries Sent</span></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="cta">
+      <div>
+        <h2>Own a property? List it on RentEase</h2>
+        <p>Reach tenants looking for a home, manage enquiries from one dashboard, and keep
+          full control of your listings.</p>
+      </div>
+      {% if current_user and current_user.role == 'owner' %}
+        <a href="{{ url_for('property_add') }}" class="btn btn-accent btn-lg">Add a Property</a>
+      {% elif not current_user %}
+        <a href="{{ url_for('register') }}" class="btn btn-accent btn-lg">Become an Owner</a>
+      {% else %}
+        <a href="{{ url_for('properties') }}" class="btn btn-accent btn-lg">Browse Properties</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}

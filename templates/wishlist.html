@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% from "_property_card.html" import property_card with context %}
+
+{% block title %}My Wishlist{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="container">
+    <h1>My Wishlist</h1>
+    <p>Properties you have saved. They stay in your account until you remove them.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    {% if results %}
+      <p class="results-count"><strong>{{ results|length }}</strong> saved propert{{ 'y' if results|length == 1 else 'ies' }}</p>
+      <div class="property-grid" id="wishlist-grid">
+        {% for p in results %}{{ property_card(p, wishlist_ids, remove_on_toggle=true) }}{% endfor %}
+      </div>
+      <div class="empty-state is-hidden" id="wishlist-empty">
+        <div class="empty-icon" aria-hidden="true">♡</div>
+        <h3>Your wishlist is empty</h3>
+        <p>Find something you like and save it here.</p>
+        <a href="{{ url_for('properties') }}" class="btn btn-primary">Browse Properties</a>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">♡</div>
+        <h3>Your wishlist is empty</h3>
+        <p>Tap "Add to Wishlist" on any property to save it here.</p>
+        <a href="{{ url_for('properties') }}" class="btn btn-primary">Browse Properties</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "_property_card.html" import property_card with context %}
+
+{% block title %}My Dashboard{% endblock %}
+
+{% block content %}
+{% set wl_ids = wishlist_properties|map(attribute='id')|list %}
+
+<section class="page-header">
+  <div class="container">
+    <h1>Welcome, {{ current_user.name }} 👋</h1>
+    <p>Here is a quick look at your RentEase activity.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <div class="stat-cards">
+      <div class="stat-card"><strong>{{ wishlist_count }}</strong><span>Saved Properties</span></div>
+      <div class="stat-card"><strong>{{ enquiry_count }}</strong><span>Enquiries Sent</span></div>
+      <div class="stat-card"><strong>{{ pending_count }}</strong><span>Awaiting Reply</span></div>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <div class="panel">
+        <h2>My Profile</h2>
+        <dl class="info-list">
+          <div><dt>Name</dt><dd>{{ current_user.name }}</dd></div>
+          <div><dt>Email</dt><dd>{{ current_user.email }}</dd></div>
+          <div><dt>Phone</dt><dd>{{ current_user.phone }}</dd></div>
+          <div><dt>Account type</dt><dd>Tenant</dd></div>
+          <div><dt>Member since</dt><dd>{{ current_user.created_at|date }}</dd></div>
+        </dl>
+        <a href="{{ url_for('profile') }}" class="btn btn-outline btn-sm">Edit Profile</a>
+        <a href="{{ url_for('properties') }}" class="btn btn-primary btn-sm">Browse More Properties</a>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Recent Enquiries</h2>
+          <a href="{{ url_for('enquiries') }}">View all</a>
+        </div>
+        {% if enquiries %}
+          <ul class="enquiry-mini-list">
+            {% for e in enquiries %}
+              <li>
+                <div>
+                  {% if e.property %}
+                    <a href="{{ url_for('property_detail', property_id=e.property.id) }}">{{ e.property.title }}</a>
+                  {% else %}
+                    <span class="muted">Property no longer available</span>
+                  {% endif %}
+                  <small>{{ e.created_at|date }}</small>
+                </div>
+                <span class="badge badge-{{ e.status|lower }}">{{ e.status }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="empty-state empty-small">
+            <p>You haven't sent any enquiries yet.</p>
+            <a href="{{ url_for('properties') }}" class="btn btn-primary btn-sm">Find a Property</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="section-head section-head-left">
+      <h2>My Wishlist</h2>
+      {% if wishlist_count > 3 %}<a href="{{ url_for('wishlist') }}">See all {{ wishlist_count }} saved</a>{% endif %}
+    </div>
+
+    {% if wishlist_properties %}
+      <div class="property-grid">
+        {% for p in wishlist_properties %}{{ property_card(p, wl_ids) }}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">♡</div>
+        <h3>Your wishlist is empty</h3>
+        <p>Tap "Add to Wishlist" on any property to save it here.</p>
+        <a href="{{ url_for('properties') }}" class="btn btn-primary">Browse Properties</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% from "_property_card.html" import property_card with context %}
+
+{% block title %}Browse Properties{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="container">
+    <h1>Browse Properties</h1>
+    <p>Search and filter approved rental listings.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <form method="get" action="{{ url_for('properties') }}" class="filter-form js-filter-form">
+      <div class="field">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" value="{{ filters.location }}"
+               placeholder="City or area" maxlength="60">
+      </div>
+
+      <div class="field">
+        <label for="property_type">Property type</label>
+        <select id="property_type" name="property_type">
+          <option value="">All types</option>
+          {% for t in PROPERTY_TYPES %}
+            <option value="{{ t }}" {% if filters.property_type == t %}selected{% endif %}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="min_rent">Min rent (₹)</label>
+        <input type="number" id="min_rent" name="min_rent" min="0" step="500"
+               value="{{ filters.min_rent }}" placeholder="0">
+      </div>
+
+      <div class="field">
+        <label for="max_rent">Max rent (₹)</label>
+        <input type="number" id="max_rent" name="max_rent" min="0" step="500"
+               value="{{ filters.max_rent }}" placeholder="Any">
+      </div>
+
+      <div class="field">
+        <label for="bedrooms">Bedrooms</label>
+        <select id="bedrooms" name="bedrooms">
+          <option value="">Any</option>
+          {% for b in [1, 2, 3, 4] %}
+            <option value="{{ b }}" {% if filters.bedrooms == b|string %}selected{% endif %}>{{ b }}+</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="sort">Sort by</label>
+        <select id="sort" name="sort" data-autosubmit>
+          <option value="newest" {% if filters.sort == 'newest' %}selected{% endif %}>Newest first</option>
+          <option value="low" {% if filters.sort == 'low' %}selected{% endif %}>Rent: Low to High</option>
+          <option value="high" {% if filters.sort == 'high' %}selected{% endif %}>Rent: High to Low</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <button type="submit" class="btn btn-primary">Apply Filters</button>
+        <a href="{{ url_for('properties') }}" class="btn btn-outline">Clear</a>
+      </div>
+    </form>
+
+    <p class="results-count">
+      <strong>{{ results|length }}</strong> propert{{ 'y' if results|length == 1 else 'ies' }} found
+    </p>
+
+    {% if results %}
+      <div class="property-grid">
+        {% for p in results %}{{ property_card(p, wishlist_ids) }}{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">🏚️</div>
+        <h3>No properties match your filters</h3>
+        <p>Try a different location, a higher maximum rent or fewer filters.</p>
+        <a href="{{ url_for('properties') }}" class="btn btn-primary">Clear all filters</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

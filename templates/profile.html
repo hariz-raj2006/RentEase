@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="container">
+    <h1>My Profile</h1>
+    <p>View your account details and update your name or phone number.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="dashboard-grid">
+
+      <div class="panel">
+        <h2>Account Details</h2>
+        <dl class="info-list">
+          <div><dt>Email</dt><dd>{{ current_user.email }}</dd></div>
+          <div><dt>Account type</dt>
+            <dd><span class="badge badge-role-{{ current_user.role }}">
+              {{ 'Property Owner' if current_user.role == 'owner' else current_user.role|capitalize }}</span></dd></div>
+          <div><dt>Member since</dt><dd>{{ current_user.created_at|date }}</dd></div>
+        </dl>
+        <p class="muted">Your email and account type cannot be changed here.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Edit Profile</h2>
+        <form method="post" action="{{ url_for('profile') }}" novalidate class="js-validate">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="field">
+            <label for="name">Full name</label>
+            <input type="text" id="name" name="name" value="{{ request.form.get('name', current_user.name) }}"
+                   required minlength="2" maxlength="60">
+            <small class="field-error"></small>
+          </div>
+
+          <div class="field">
+            <label for="phone">Phone number</label>
+            <input type="tel" id="phone" name="phone" value="{{ request.form.get('phone', current_user.phone) }}"
+                   required pattern="\+?[0-9 ]{10,15}" title="Enter 10 to 13 digits, for example 9876543210">
+            <small class="field-error"></small>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

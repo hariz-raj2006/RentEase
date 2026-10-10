@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+{% set selected_role = form.get('role') or 'tenant' %}
+<section class="auth-section">
+  <div class="auth-card auth-card-wide">
+    <h1>Create your account</h1>
+    <p class="auth-sub">Join RentEase as a tenant or a property owner.</p>
+
+    <form method="post" action="{{ url_for('register') }}" novalidate class="js-validate">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="field">
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" value="{{ form.get('name', '') }}"
+               required minlength="2" maxlength="60" autocomplete="name" placeholder="e.g. Priya Sharma">
+        <small class="field-error"></small>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" value="{{ form.get('email', '') }}"
+                 required maxlength="120" autocomplete="email" placeholder="you@example.com">
+          <small class="field-error"></small>
+        </div>
+        <div class="field">
+          <label for="phone">Phone number</label>
+          <input type="tel" id="phone" name="phone" value="{{ form.get('phone', '') }}"
+                 required pattern="\+?[0-9 ]{10,15}" title="Enter 10 to 13 digits, for example 9876543210"
+                 autocomplete="tel" placeholder="9876543210">
+          <small class="field-error"></small>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required minlength="8"
+                 pattern="(?=.*[A-Za-z])(?=.*[0-9]).{8,}"
+                 title="At least 8 characters, with at least one letter and one number"
+                 autocomplete="new-password" placeholder="Min. 8 characters">
+          <small class="field-error"></small>
+        </div>
+        <div class="field">
+          <label for="confirm_password">Confirm password</label>
+          <input type="password" id="confirm_password" name="confirm_password" required
+                 data-match="#password" autocomplete="new-password" placeholder="Re-enter password">
+          <small class="field-error"></small>
+        </div>
+      </div>
+
+      <fieldset class="field role-fieldset">
+        <legend>I want to join as</legend>
+        <div class="role-options">
+          <label class="role-option">
+            <input type="radio" name="role" value="tenant" {% if selected_role == 'tenant' %}checked{% endif %} required>
+            <span><strong>Tenant</strong><small>I'm looking for a place to rent</small></span>
+          </label>
+          <label class="role-option">
+            <input type="radio" name="role" value="owner" {% if selected_role == 'owner' %}checked{% endif %}>
+            <span><strong>Property Owner</strong><small>I want to list my property</small></span>
+          </label>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">Create Account</button>
+    </form>
+
+    <p class="auth-switch">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+  </div>
+</section>
+{% endblock %}

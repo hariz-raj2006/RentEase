@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Owner Dashboard{% endblock %}
+
+{% block content %}
+<section class="page-header">
+  <div class="container header-row">
+    <div>
+      <h1>Owner Dashboard</h1>
+      <p>Welcome, {{ current_user.name }}. Manage your listings and enquiries.</p>
+    </div>
+    <a href="{{ url_for('property_add') }}" class="btn btn-accent btn-lg">+ Add New Property</a>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+
+    <div class="stat-cards">
+      <div class="stat-card"><strong>{{ stats.total }}</strong><span>Listed Properties</span></div>
+      <div class="stat-card"><strong>{{ stats.approved }}</strong><span>Approved &amp; Live</span></div>
+      <div class="stat-card"><strong>{{ stats.pending }}</strong><span>Awaiting Approval</span></div>
+      <div class="stat-card"><strong>{{ stats.enquiries }}</strong><span>Total Enquiries</span></div>
+      <div class="stat-card"><strong>{{ stats.new_enquiries }}</strong><span>New (Pending) Enquiries</span></div>
+    </div>
+
+    <div class="section-head section-head-left">
+      <h2>My Properties</h2>
+      <a href="{{ url_for('owner_enquiries') }}">View all enquiries</a>
+    </div>
+
+    {% if properties %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Rent</th>
+              <th>Listing status</th>
+              <th>Availability</th>
+              <th>Enquiries</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in properties %}
+              <tr>
+                <td data-label="Property">
+                  <div class="table-property">
+                    <img src="{{ p.image_url }}" alt="" class="thumb js-img-fallback" loading="lazy">
+                    <div>
+                      <a href="{{ url_for('property_detail', property_id=p.id) }}">{{ p.title }}</a>
+                      <small class="block muted">{{ p.location }} · {{ p.property_type }}</small>
+                    </div>
+                  </div>
+                </td>
+                <td data-label="Rent">{{ p.rent|rupees }}</td>
+                <td data-label="Listing status"><span class="badge badge-{{ p.status }}">{{ p.status|capitalize }}</span></td>
+                <td data-label="Availability">
+                  <span class="badge {{ 'badge-success' if p.availability == 'Available' else 'badge-rented' }}">{{ p.availability }}</span>
+                </td>
+                <td data-label="Enquiries">{{ p.enquiry_count }}</td>
+                <td data-label="Actions">
+                  <div class="action-row">
+                    <a class="btn btn-outline btn-sm" href="{{ url_for('property_edit', property_id=p.id) }}">Edit</a>
+                    <a class="btn btn-outline btn-sm" href="{{ url_for('owner_enquiries', property_id=p.id) }}">View Enquiries</a>
+                    <form method="post" action="{{ url_for('property_delete', property_id=p.id) }}"
+                          class="js-confirm-form"
+                          data-confirm="Delete '{{ p.title }}'? Its wishlist entries and enquiries will also be deleted. This cannot be undone.">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="side-note">New and rejected listings must be approved by an administrator before tenants can see them. Editing a rejected listing sends it back for review.</p>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon" aria-hidden="true">🏠</div>
+        <h3>You haven't listed any properties yet</h3>
+        <p>Add your first property to start receiving enquiries.</p>
+        <a href="{{ url_for('property_add') }}" class="btn btn-accent">Add New Property</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
